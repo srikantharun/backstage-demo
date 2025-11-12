@@ -1,9 +1,9 @@
 app:
-  title: Backstage Demo - DWP Interview
+  title: Backstage Platform
   baseUrl: http://localhost:3000
 
 organization:
-  name: DWP Platform Engineering
+  name: Platform Engineering
 
 backend:
   # Used for enabling authentication, secret is shared by all backend plugins
