@@ -110,6 +110,31 @@ catalog:
       rules:
         - allow: [Component, System, API, Resource, Group]
 
+    # Team17 Demo - Example game projects
+    - type: file
+      target: ../../examples/template-game/catalog-info.yaml
+      rules:
+        - allow: [Component]
+
+    # Team17 Demo - Software Templates
+    - type: file
+      target: ../../scaffolder/templates/unreal-game-project/template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ../../scaffolder/templates/unity-mobile-project/template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ../../scaffolder/templates/back-catalogue-port/template.yaml
+      rules:
+        - allow: [Template]
+
+# TeamCity mock integration (for Team17 demo)
+teamcity:
+  baseUrl: https://teamcity.team17.com
+  useMockData: true
+
 kubernetes:
   # see https://backstage.io/docs/features/kubernetes/configuration for kubernetes configuration options
 

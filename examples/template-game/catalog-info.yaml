@@ -1,0 +1,133 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: candy-crush-mobile
+  title: Candy Crush Mobile
+  description: "Candy Crush Saga - Mobile Build Pipeline (Demo)"
+  annotations:
+    # TeamCity integration
+    teamcity.com/project-id: CandyCrush_Mobile
+    teamcity.com/build-type-id: CandyCrush_Mobile_FullBuild
+
+    # Perforce integration
+    perforce.com/depot: //Game/CandyCrush
+    perforce.com/stream: //Game/CandyCrush/Main
+
+    # TechDocs
+    backstage.io/techdocs-ref: dir:docs
+
+    # Links
+    backstage.io/view-url: https://backstage.team17.com/catalog/default/component/candy-crush-mobile
+    backstage.io/edit-url: https://github.com/srikantharun/backstage-demo/edit/main/examples/template-game/catalog-info.yaml
+
+  tags:
+    - unity
+    - mobile
+    - ios
+    - android
+    - active-development
+    - il2cpp
+
+  links:
+    - url: https://teamcity.team17.com/project/CandyCrush_Mobile
+      title: TeamCity Builds
+      icon: dashboard
+    - url: p4v://perforce.team17.com:1666?stream=//Game/CandyCrush/Main
+      title: Perforce Stream
+      icon: github
+    - url: https://slack.com/app_redirect?channel=candy-crush-build
+      title: Build Support Channel
+      icon: chat
+
+spec:
+  type: game
+  lifecycle: production
+  owner: team-candy-crush
+  system: mobile-games
+
+  dependsOn:
+    - resource:unity-6
+    - resource:teamcity-agents
+    - resource:unity-accelerator
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: worms-legacy
+  title: Worms Legacy (Console Port)
+  description: "Worms Classic - Console Port Project (Demo)"
+  annotations:
+    teamcity.com/project-id: Worms_Legacy
+    perforce.com/stream: //Game/Worms/Release/1.0-Console
+    backstage.io/techdocs-ref: dir:docs
+
+  tags:
+    - unreal
+    - ue5
+    - console
+    - ps5
+    - xbox
+    - switch
+    - back-catalogue
+
+  links:
+    - url: https://teamcity.team17.com/project/Worms_Legacy
+      title: TeamCity Builds
+      icon: dashboard
+
+spec:
+  type: game
+  lifecycle: production
+  owner: team-worms
+  system: back-catalogue
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: new-game-prototype
+  title: New Game Prototype
+  description: "Unannounced Title - Early Development (Demo)"
+  annotations:
+    teamcity.com/project-id: NewGame_Prototype
+    perforce.com/stream: //Game/NewGame/Dev/Prototype
+
+  tags:
+    - unreal
+    - ue54
+    - pc
+    - android
+    - prototype
+
+spec:
+  type: game
+  lifecycle: experimental
+  owner: team-innovation
+  system: active-development
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: overcooked-dlc
+  title: Overcooked DLC Pack
+  description: "Overcooked - Summer DLC Pack (Demo)"
+  annotations:
+    teamcity.com/project-id: Overcooked_DLC
+    perforce.com/stream: //Game/Overcooked/DLC/SummerPack
+
+  tags:
+    - unreal
+    - ue5
+    - pc
+    - ps5
+    - xbox
+    - switch
+    - dlc
+
+spec:
+  type: game
+  lifecycle: production
+  owner: team-overcooked
+  system: active-development

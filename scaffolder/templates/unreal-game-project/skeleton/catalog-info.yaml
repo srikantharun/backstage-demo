@@ -1,0 +1,64 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.projectName | lower }}
+  title: ${{ values.projectName }}
+  description: ${{ values.description | default('Unreal Engine game project') }}
+  annotations:
+    # TeamCity integration
+    teamcity.com/project-id: ${{ values.projectName }}_Game
+    teamcity.com/build-type-id: ${{ values.projectName }}_FullBuild
+
+    # Perforce integration
+    perforce.com/depot: //Game/${{ values.perforceDepot }}
+    perforce.com/stream: //Game/${{ values.perforceDepot }}/Main
+
+    # TechDocs
+    backstage.io/techdocs-ref: dir:docs
+
+    # Links
+    backstage.io/view-url: https://backstage.team17.com/catalog/default/component/${{ values.projectName | lower }}
+
+  tags:
+    - unreal
+    - ue${{ values.engineVersion | replace('.', '') }}
+    - game
+    {%- for platform in values.targetPlatforms %}
+    - {{ platform | lower }}
+    {%- endfor %}
+    {%- if values.isBackCatalogue %}
+    - back-catalogue
+    - legacy
+    {%- endif %}
+
+  links:
+    - url: https://teamcity.team17.com/project/${{ values.projectName }}_Game
+      title: TeamCity Builds
+      icon: dashboard
+    - url: p4v://perforce.team17.com:1666?stream=//Game/${{ values.perforceDepot }}/Main
+      title: Perforce Stream
+      icon: github
+
+spec:
+  type: game
+  lifecycle: {% if values.isBackCatalogue %}production{% else %}development{% endif %}
+  owner: ${{ values.team | default('team17-games') }}
+  system: {% if values.isBackCatalogue %}back-catalogue{% else %}active-development{% endif %}
+
+  # Dependencies
+  dependsOn:
+    - resource:unreal-engine-${{ values.engineVersion | replace('.', '-') }}
+    - resource:teamcity-agents
+    {%- if values.enableConsoleSupport %}
+    - resource:console-sdk-licenses
+    {%- endif %}
+
+  # Build metadata
+  metadata:
+    engineVersion: ${{ values.engineVersion }}
+    targetPlatforms:
+      {%- for platform in values.targetPlatforms %}
+      - {{ platform }}
+      {%- endfor %}
+    buildConfiguration: ${{ values.buildConfiguration }}
+    distributedBuild: ${{ values.enableDistributedBuild }}

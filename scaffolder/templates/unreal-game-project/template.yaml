@@ -1,0 +1,225 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: unreal-game-project
+  title: Unreal Engine Game Project
+  description: |
+    Scaffold a new Unreal Engine game project with:
+    - Pre-configured .uproject file
+    - TeamCity Kotlin DSL build configuration
+    - Perforce stream structure
+    - Catalog entry for Backstage
+  tags:
+    - unreal
+    - game
+    - teamcity
+    - recommended
+spec:
+  owner: team17-build-engineering
+  type: game
+
+  parameters:
+    - title: Project Details
+      required:
+        - projectName
+        - engineVersion
+      properties:
+        projectName:
+          title: Project Name
+          type: string
+          description: Name of the game project (no spaces, PascalCase)
+          pattern: '^[A-Z][a-zA-Z0-9]+$'
+          ui:autofocus: true
+          ui:placeholder: 'MyAwesomeGame'
+
+        engineVersion:
+          title: Unreal Engine Version
+          type: string
+          description: Target Unreal Engine version
+          enum:
+            - '4.27'
+            - '5.3'
+            - '5.4'
+          default: '5.4'
+          enumNames:
+            - 'UE 4.27 LTS (Legacy)'
+            - 'UE 5.3'
+            - 'UE 5.4 (Recommended)'
+
+        description:
+          title: Project Description
+          type: string
+          description: Brief description of the game
+          ui:widget: textarea
+
+        team:
+          title: Owning Team
+          type: string
+          description: Team responsible for this project
+          ui:field: OwnerPicker
+          ui:options:
+            catalogFilter:
+              kind: Group
+
+    - title: Platform Configuration
+      required:
+        - targetPlatforms
+      properties:
+        targetPlatforms:
+          title: Target Platforms
+          type: array
+          description: Platforms to build for
+          items:
+            type: string
+            enum:
+              - Win64
+              - Android
+              - iOS
+              - PS5
+              - Xbox
+              - Switch
+          uniqueItems: true
+          minItems: 1
+          default:
+            - Win64
+
+        enableConsoleSupport:
+          title: Enable Console SDK Integration
+          type: boolean
+          description: Include PlayStation, Xbox, and Nintendo SDK setup (requires licensing)
+          default: false
+
+    - title: Build Configuration
+      properties:
+        buildConfiguration:
+          title: Default Build Configuration
+          type: string
+          enum:
+            - Development
+            - Shipping
+            - DebugGame
+          default: Development
+
+        enableDistributedBuild:
+          title: Enable Distributed Compilation
+          type: boolean
+          description: Use Incredibuild/FASTBuild/UBA for faster builds
+          default: true
+
+        artifactRetentionDays:
+          title: Artifact Retention (days)
+          type: integer
+          description: How long to keep build artifacts
+          default: 30
+          minimum: 7
+          maximum: 365
+
+        isBackCatalogue:
+          title: Back-Catalogue / Legacy Project
+          type: boolean
+          description: Enable legacy compatibility flags for porting older games
+          default: false
+
+    - title: Repository Setup
+      required:
+        - perforceDepot
+      properties:
+        perforceDepot:
+          title: Perforce Depot Name
+          type: string
+          description: Name for the Perforce depot (will create //Game/{name})
+          pattern: '^[A-Z][a-zA-Z0-9]+$'
+
+        createDevStream:
+          title: Create Development Stream
+          type: boolean
+          description: Create a //Game/{name}/Dev stream for feature work
+          default: true
+
+  steps:
+    # Step 1: Fetch the template skeleton
+    - id: fetch-base
+      name: Fetch Base Template
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          projectName: ${{ parameters.projectName }}
+          engineVersion: ${{ parameters.engineVersion }}
+          description: ${{ parameters.description }}
+          team: ${{ parameters.team }}
+          targetPlatforms: ${{ parameters.targetPlatforms }}
+          enableConsoleSupport: ${{ parameters.enableConsoleSupport }}
+          buildConfiguration: ${{ parameters.buildConfiguration }}
+          enableDistributedBuild: ${{ parameters.enableDistributedBuild }}
+          artifactRetentionDays: ${{ parameters.artifactRetentionDays }}
+          isBackCatalogue: ${{ parameters.isBackCatalogue }}
+          perforceDepot: ${{ parameters.perforceDepot }}
+
+    # Step 2: Create Perforce depot structure (mock for demo)
+    - id: create-perforce-depot
+      name: Create Perforce Depot
+      action: debug:log
+      input:
+        message: |
+          [MOCK] Would create Perforce depot structure:
+          //Game/${{ parameters.perforceDepot }}/Main/Source/
+          //Game/${{ parameters.perforceDepot }}/Main/Content/
+          //Game/${{ parameters.perforceDepot }}/Main/Config/
+          //Game/${{ parameters.perforceDepot }}/Main/Build/
+          //Game/${{ parameters.perforceDepot }}/Main/.teamcity/
+          ${{ parameters.createDevStream ? '//Game/' + parameters.perforceDepot + '/Dev/' : '' }}
+
+    # Step 3: Register TeamCity project (mock for demo)
+    - id: register-teamcity
+      name: Register TeamCity Project
+      action: debug:log
+      input:
+        message: |
+          [MOCK] Would create TeamCity project:
+          Project ID: ${{ parameters.projectName }}_Game
+          Build Types:
+          - CompileEditor
+          - Cook_${{ parameters.targetPlatforms | join('_') }}
+          - FunctionalTests
+          - Package
+          - PublishToUGS
+
+    # Step 4: Register in Backstage catalog
+    - id: register-catalog
+      name: Register in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['fetch-base'].output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  output:
+    links:
+      - title: View in Catalog
+        icon: catalog
+        entityRef: ${{ steps['register-catalog'].output.entityRef }}
+      - title: Perforce Stream
+        icon: github
+        url: p4://perforce.team17.com:1666//Game/${{ parameters.perforceDepot }}/Main
+      - title: TeamCity Project
+        icon: dashboard
+        url: https://teamcity.team17.com/project/${{ parameters.projectName }}_Game
+    text:
+      - title: Next Steps
+        content: |
+          ## Your project is ready!
+
+          ### 1. Sync the Perforce Stream
+          ```bash
+          p4 client -t //Game/${{ parameters.perforceDepot }}/Main/...
+          p4 sync
+          ```
+
+          ### 2. Open in Unreal Editor
+          Open `${{ parameters.projectName }}.uproject` in Unreal Engine ${{ parameters.engineVersion }}
+
+          ### 3. Trigger First Build
+          Go to TeamCity and trigger the "Full Build" configuration
+
+          ### 4. Artist Setup
+          Once the build is green, artists can sync via Unreal Game Sync

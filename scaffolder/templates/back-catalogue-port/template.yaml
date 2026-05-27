@@ -1,0 +1,198 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: back-catalogue-port
+  title: Back-Catalogue Platform Port
+  description: |
+    Port an existing game to a new platform. Creates:
+    - Isolation branch in Perforce
+    - Platform-specific build configuration
+    - Porting checklist and documentation
+    - Legacy compatibility flags
+  tags:
+    - back-catalogue
+    - porting
+    - legacy
+    - platform-migration
+spec:
+  owner: team17-build-engineering
+  type: game-port
+
+  parameters:
+    - title: Source Game
+      required:
+        - sourceProject
+        - sourceStream
+      properties:
+        sourceProject:
+          title: Source Project
+          type: string
+          description: The existing game to port
+          ui:field: EntityPicker
+          ui:options:
+            catalogFilter:
+              kind: Component
+              spec.type: game
+
+        sourceStream:
+          title: Source Perforce Stream
+          type: string
+          description: The stream containing the release version
+          ui:placeholder: '//Game/ProjectName/Release/1.0'
+
+        sourceEngine:
+          title: Source Engine
+          type: string
+          enum:
+            - 'UE4.27'
+            - 'UE5.0'
+            - 'UE5.1'
+            - 'UE5.2'
+            - 'UE5.3'
+            - 'Unity2021'
+            - 'Unity2022'
+          description: Engine version of the source project
+
+    - title: Target Platform
+      required:
+        - targetPlatform
+      properties:
+        targetPlatform:
+          title: Target Platform
+          type: string
+          enum:
+            - Android
+            - iOS
+            - Switch
+            - PS5
+            - Xbox
+          description: New platform to port to
+
+        targetEngine:
+          title: Target Engine Version
+          type: string
+          description: Engine version for the port (leave blank to keep same)
+
+        portType:
+          title: Port Type
+          type: string
+          enum:
+            - direct
+            - enhanced
+            - remaster
+          default: direct
+          enumNames:
+            - 'Direct Port (minimal changes)'
+            - 'Enhanced Port (visual/performance updates)'
+            - 'Remaster (significant upgrades)'
+
+    - title: Build Configuration
+      properties:
+        enableLegacyFlags:
+          title: Enable Legacy Compatibility
+          type: boolean
+          default: true
+          description: Include compatibility flags for older code patterns
+
+        createIsolationBranch:
+          title: Create Isolation Branch
+          type: boolean
+          default: true
+          description: Create a separate branch to avoid affecting main release
+
+        testingLevel:
+          title: Testing Requirements
+          type: string
+          enum:
+            - basic
+            - standard
+            - certification
+          default: standard
+          enumNames:
+            - 'Basic (smoke tests only)'
+            - 'Standard (functional + performance)'
+            - 'Certification (full platform cert suite)'
+
+  steps:
+    - id: fetch-base
+      name: Fetch Porting Template
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          sourceProject: ${{ parameters.sourceProject }}
+          sourceStream: ${{ parameters.sourceStream }}
+          sourceEngine: ${{ parameters.sourceEngine }}
+          targetPlatform: ${{ parameters.targetPlatform }}
+          targetEngine: ${{ parameters.targetEngine }}
+          portType: ${{ parameters.portType }}
+          enableLegacyFlags: ${{ parameters.enableLegacyFlags }}
+          testingLevel: ${{ parameters.testingLevel }}
+
+    - id: create-branch
+      name: Create Isolation Branch
+      if: ${{ parameters.createIsolationBranch }}
+      action: debug:log
+      input:
+        message: |
+          [MOCK] Would create Perforce branch:
+          Source: ${{ parameters.sourceStream }}
+          Target: ${{ parameters.sourceStream }}-${{ parameters.targetPlatform }}-Port
+
+    - id: generate-checklist
+      name: Generate Porting Checklist
+      action: debug:log
+      input:
+        message: |
+          [MOCK] Generating porting checklist for:
+          Platform: ${{ parameters.targetPlatform }}
+          Port Type: ${{ parameters.portType }}
+
+          Checklist includes:
+          - [ ] Input system adaptation
+          - [ ] UI scaling and safe areas
+          - [ ] Platform-specific APIs
+          - [ ] Performance optimization
+          - [ ] Certification requirements
+
+    - id: register-catalog
+      name: Register in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['fetch-base'].output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  output:
+    links:
+      - title: View Port Project
+        icon: catalog
+        entityRef: ${{ steps['register-catalog'].output.entityRef }}
+      - title: Porting Checklist
+        icon: docs
+        url: /docs/default/component/${{ parameters.sourceProject }}-${{ parameters.targetPlatform | lower }}-port/porting-checklist
+    text:
+      - title: Next Steps
+        content: |
+          ## Porting Project Created!
+
+          ### Phase 1: Audit
+          - [ ] Review source code for platform-specific assumptions
+          - [ ] Identify incompatible APIs
+          - [ ] Document asset pipeline changes needed
+
+          ### Phase 2: Adapt
+          - [ ] Implement input system changes
+          - [ ] Adapt UI for new form factor
+          - [ ] Add platform-specific features
+
+          ### Phase 3: Optimize
+          - [ ] Profile on target hardware
+          - [ ] Meet performance targets
+          - [ ] Optimize memory usage
+
+          ### Phase 4: Certify
+          - [ ] Pass platform TRC/XR/Lotcheck
+          - [ ] Complete age rating submissions
+          - [ ] Prepare store assets
+
+          See [Porting Guide](/docs/patterns/back-catalogue-ports) for detailed instructions.
