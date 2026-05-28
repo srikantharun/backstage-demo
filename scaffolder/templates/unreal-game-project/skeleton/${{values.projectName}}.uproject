@@ -1,0 +1,29 @@
+{
+    "FileVersion": 3,
+    "EngineAssociation": "${{values.engineVersion}}",
+    "Category": "",
+    "Description": "${{values.description}}",
+    "Modules": [
+        {
+            "Name": "${{values.projectName}}",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        }
+    ],
+    "Plugins": [
+        {
+            "Name": "ModelingToolsEditorMode",
+            "Enabled": true,
+            "TargetAllowList": [ "Editor" ]
+        },
+        {
+            "Name": "GeometryProcessing",
+            "Enabled": true
+        }
+    ],
+    "TargetPlatforms": [
+        {%- for platform in values.targetPlatforms %}
+        "${{platform}}"{% if not loop.last %},{% endif %}
+        {%- endfor %}
+    ]
+}
