@@ -13,8 +13,8 @@ const backend = createBackend();
 backend.add(import('@backstage/plugin-app-backend'));
 backend.add(import('@backstage/plugin-proxy-backend'));
 
-// scaffolder plugin - DISABLED: isolated-vm incompatible with Node.js 25
-// In production with Node 20/22, enable: @backstage/plugin-scaffolder-backend
+// scaffolder plugin - Now works with Node.js 20
+backend.add(import('@backstage/plugin-scaffolder-backend'));
 
 // techdocs plugin
 backend.add(import('@backstage/plugin-techdocs-backend'));
@@ -25,7 +25,7 @@ backend.add(import('@backstage/plugin-auth-backend-module-guest-provider'));
 
 // catalog plugin
 backend.add(import('@backstage/plugin-catalog-backend'));
-// Enable Template entity kind recognition (works without scaffolder-backend)
+// Enable Template entity kind recognition
 backend.add(
   import('@backstage/plugin-catalog-backend-module-scaffolder-entity-model'),
 );
